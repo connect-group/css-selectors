@@ -4,11 +4,14 @@
 package se.fishtank.css.selectors.dom.internal;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.thymeleaf.dom.Document;
+import org.thymeleaf.dom.Element;
+import org.thymeleaf.dom.NestableNode;
+import org.thymeleaf.dom.Node;
+import org.thymeleaf.dom.Text;
 
 import se.fishtank.css.selectors.NodeSelectorException;
 import se.fishtank.css.selectors.dom.DOMHelper;
@@ -87,22 +90,22 @@ public class PseudoClassSpecifierChecker extends NodeTraversalChecker {
     private void addEmptyElements() {
         for (Node node : nodes) {
             boolean empty = true;
-            NodeList nl = node.getChildNodes();
-            for (int i = 0; i < nl.getLength(); i++) {
-                Node n = nl.item(i);
-                if (n.getNodeType() == Node.ELEMENT_NODE) {
-                    empty = false;
-                    break;
-                } else if (n.getNodeType() == Node.TEXT_NODE) {
-                    // TODO: Should we trim the text and see if it's length 0?
-                    String value = n.getNodeValue();
-                    if (value.length() > 0) {
-                        empty = false;
-                        break;
-                    }
-                }
-            }
-            
+            if(node instanceof NestableNode) {
+	            List<Node> nl = ((NestableNode) node).getChildren();
+	            for (Node n : nl) {
+	                if (n instanceof Element) {
+	                    empty = false;
+	                    break;
+	                } else if (n instanceof Text) {
+	                    // TODO: Should we trim the text and see if it's length 0?
+	                    String value = ((Text) n).getContent();
+	                    if (value.length() > 0) {
+	                        empty = false;
+	                        break;
+	                    }
+	                }
+	            }
+            }            
             if (empty) {
                 result.add(node);
             }
@@ -131,7 +134,7 @@ public class PseudoClassSpecifierChecker extends NodeTraversalChecker {
         for (Node node : nodes) {
             Node n = DOMHelper.getPreviousSiblingElement(node);
             while (n != null) {
-                if (n.getNodeName().equals(node.getNodeName())) {
+                if (DOMHelper.getNodeName(n).equals(DOMHelper.getNodeName(node))) {
                     break;
                 }
                 
@@ -166,7 +169,7 @@ public class PseudoClassSpecifierChecker extends NodeTraversalChecker {
         for (Node node : nodes) {
             Node n = DOMHelper.getNextSiblingElement(node);
             while (n != null) {
-                if (n.getNodeName().equals(node.getNodeName())) {
+                if (DOMHelper.getNodeName(n).equals(DOMHelper.getNodeName(node))) {
                     break;
                 }
                 
@@ -202,7 +205,7 @@ public class PseudoClassSpecifierChecker extends NodeTraversalChecker {
         for (Node node : nodes) {
             Node n = DOMHelper.getPreviousSiblingElement(node);
             while (n != null) {
-                if (n.getNodeName().equals(node.getNodeName())) {
+                if (DOMHelper.getNodeName(n).equals(DOMHelper.getNodeName(node))) {
                     break;
                 }
                 
@@ -212,7 +215,7 @@ public class PseudoClassSpecifierChecker extends NodeTraversalChecker {
             if (n == null) {
                 n = DOMHelper.getNextSiblingElement(node);
                 while (n != null) {
-                    if (n.getNodeName().equals(node.getNodeName())) {
+                    if (DOMHelper.getNodeName(n).equals(DOMHelper.getNodeName(node))) {
                         break;
                     }
                     
@@ -232,14 +235,14 @@ public class PseudoClassSpecifierChecker extends NodeTraversalChecker {
      * @see <a href="http://www.w3.org/TR/css3-selectors/#root-pseudo"><code>:root</code> pseudo-class</a>
      */
     private void addRootElement() {
-        if (root.getNodeType() == Node.DOCUMENT_NODE) {
+        if (root instanceof Document) {
             // Get the single element child of the document node.
             // There could be a doctype node and comment nodes that we must skip.
             Element element = DOMHelper.getFirstChildElement(root);
             Assert.notNull(element, "there should be a root element!");
             result.add(element);
         } else {
-            Assert.isTrue(root.getNodeType() == Node.ELEMENT_NODE, "root must be a document or element node!");
+            Assert.isTrue(root instanceof Element, "root must be a document or element node!");
             result.add(root);
         }
     }

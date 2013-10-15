@@ -1,15 +1,22 @@
 package se.fishtank.css.selectors;
 
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-
 import org.junit.Assert;
 import org.junit.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
+import org.thymeleaf.Configuration;
+import org.thymeleaf.dom.Document;
+import org.thymeleaf.dom.Element;
+import org.thymeleaf.dom.NestableAttributeHolderNode;
+import org.thymeleaf.dom.Node;
+import org.thymeleaf.messageresolver.StandardMessageResolver;
+import org.thymeleaf.templatemode.StandardTemplateModeHandlers;
+import org.thymeleaf.templateparser.xmlsax.XmlNonValidatingSAXTemplateParser;
+import org.thymeleaf.templateresolver.UrlTemplateResolver;
 
 import se.fishtank.css.selectors.dom.DOMNodeSelector;
 
@@ -72,9 +79,15 @@ public class DOMNodeSelectorTest {
     private final DOMNodeSelector nodeSelector;
     
     public DOMNodeSelectorTest() throws Exception {
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        Document document = factory.newDocumentBuilder().parse(getClass().getResourceAsStream("/test.html"));
-        nodeSelector = new DOMNodeSelector(document);
+    	XmlNonValidatingSAXTemplateParser parser = new XmlNonValidatingSAXTemplateParser(1);
+    	Reader reader = new InputStreamReader(getClass().getResourceAsStream("/test.html"));
+    	Configuration configuration = new Configuration();
+    	configuration.setTemplateResolver(new UrlTemplateResolver());
+    	configuration.setMessageResolver(new StandardMessageResolver());
+    	configuration.setDefaultTemplateModeHandlers(StandardTemplateModeHandlers.ALL_TEMPLATE_MODE_HANDLERS);
+    	configuration.initialize();
+    	Document document = parser.parseTemplate(configuration, "test", reader);
+        nodeSelector = new DOMNodeSelector(document);     
     }
     
     @Test
@@ -88,14 +101,16 @@ public class DOMNodeSelectorTest {
     
     @Test
     public void checkRoot() throws NodeSelectorException {
-        Node root = nodeSelector.querySelector(":root");
-        Assert.assertEquals(Node.ELEMENT_NODE, root.getNodeType());
-        Assert.assertEquals("html", root.getNodeName());
+        Element root = (Element)nodeSelector.querySelector(":root");
+        
+        Assert.assertEquals("html", root.getNormalizedName());
         
         DOMNodeSelector subSelector = new DOMNodeSelector(nodeSelector.querySelector("div#scene1"));
         Set<Node> subRoot = subSelector.querySelectorAll(":root");
         Assert.assertEquals(1, subRoot.size());
-        Assert.assertEquals("scene1", subRoot.iterator().next().getAttributes().getNamedItem("id").getTextContent());
+         
+        NestableAttributeHolderNode node =(NestableAttributeHolderNode) subRoot.iterator().next();
+        Assert.assertEquals("scene1", node.getAttributeMap().get("id").getValue());
         Assert.assertEquals((int) testDataMap.get("div#scene1 div.dialog div"), subSelector.querySelectorAll(":root div.dialog div").size());
         
         Node meta = nodeSelector.querySelector(":root > head > meta");

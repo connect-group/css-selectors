@@ -4,12 +4,13 @@
 package se.fishtank.css.selectors.dom.internal;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.thymeleaf.dom.Document;
+import org.thymeleaf.dom.Element;
+import org.thymeleaf.dom.NestableNode;
+import org.thymeleaf.dom.Node;
 
 import se.fishtank.css.selectors.NodeSelectorException;
 import se.fishtank.css.selectors.Selector;
@@ -55,8 +56,8 @@ public class TagChecker extends NodeTraversalChecker {
         Assert.notNull(nodes, "nodes is null!");
         this.nodes = nodes;
 
-        Document doc = (root instanceof Document) ? (Document) root : root.getOwnerDocument();
-        caseSensitive = !doc.createElement("a").isEqualNode(doc.createElement("A"));
+        //Document doc = (root instanceof Document) ? (Document) root : DOMHelper.getOwnerDocument(root);
+        caseSensitive = true; // safe but slower //!doc.createElement("a").isEqualNode(doc.createElement("A"));
 
         result = new LinkedHashSet<Node>();
         switch (selector.getCombinator()) {
@@ -86,18 +87,14 @@ public class TagChecker extends NodeTraversalChecker {
      */
     private void addDescendantElements() throws NodeSelectorException {
         for (Node node : nodes) {
-            NodeList nl;
-            if (node.getNodeType() == Node.DOCUMENT_NODE) {
-                nl = ((Document) node).getElementsByTagName(selector.getTagName());
-            } else if (node.getNodeType() == Node.ELEMENT_NODE) {
-                nl = ((Element) node).getElementsByTagName(selector.getTagName());
+            List<Node> nl;
+            if (node instanceof Document || node instanceof Element) {
+                nl = DOMHelper.getElementsByTagName(node, selector.getTagName());
             } else {
                 throw new NodeSelectorException("Only document and element nodes allowed!");
             }
             
-            for (int i = 0; i < nl.getLength(); i++) {
-                result.add(nl.item(i));
-            }
+            result.addAll(nl);
         }
     }
     
@@ -108,18 +105,19 @@ public class TagChecker extends NodeTraversalChecker {
      */
     private void addChildElements() {
         for (Node node : nodes) {
-            NodeList nl = node.getChildNodes();
-            for (int i = 0; i < nl.getLength(); i++) {
-                node = nl.item(i);
-                if (node.getNodeType() != Node.ELEMENT_NODE) {
-                    continue;
-                }
-                
-                String tag = selector.getTagName();
-                if (tagEquals(tag, node.getNodeName()) || tag.equals(Selector.UNIVERSAL_TAG)) {
-                    result.add(node);
-                }
-            }
+        	if(node instanceof NestableNode) {
+	            List<Node> nl = ((NestableNode) node).getChildren();
+	            for (Node n : nl) {
+	                if (!(n instanceof Element)) {
+	                    continue;
+	                }
+	                
+	                String tag = selector.getTagName();
+	                if (tagEquals(tag, ((Element)n).getNormalizedName()) || tag.equals(Selector.UNIVERSAL_TAG)) {
+	                    result.add(n);
+	                }
+	            }
+        	}
         }
     }
     
@@ -133,7 +131,7 @@ public class TagChecker extends NodeTraversalChecker {
             Node n = DOMHelper.getNextSiblingElement(node);
             if (n != null) {
                 String tag = selector.getTagName();
-                if (tagEquals(tag, n.getNodeName()) || tag.equals(Selector.UNIVERSAL_TAG)) {
+                if (tagEquals(tag, DOMHelper.getNodeName(n)) || tag.equals(Selector.UNIVERSAL_TAG)) {
                     result.add(n);
                 }
             }
@@ -150,7 +148,7 @@ public class TagChecker extends NodeTraversalChecker {
             Node n = DOMHelper.getNextSiblingElement(node);
             while (n != null) {
                 String tag = selector.getTagName();
-                if (tagEquals(tag, n.getNodeName()) || tag.equals(Selector.UNIVERSAL_TAG)) {
+                if (tagEquals(tag, DOMHelper.getNodeName(n)) || tag.equals(Selector.UNIVERSAL_TAG)) {
                     result.add(n);
                 }
                 

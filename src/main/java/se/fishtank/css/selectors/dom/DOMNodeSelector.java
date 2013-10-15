@@ -8,7 +8,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.w3c.dom.Node;
+import org.thymeleaf.dom.Document;
+import org.thymeleaf.dom.Element;
+import org.thymeleaf.dom.Node;
 
 import se.fishtank.css.selectors.NodeSelector;
 import se.fishtank.css.selectors.NodeSelectorException;
@@ -50,9 +52,7 @@ public class DOMNodeSelector implements NodeSelector<Node> {
      */
     public DOMNodeSelector(Node root) {
         Assert.notNull(root, "root is null!");
-        short nodeType = root.getNodeType();
-        Assert.isTrue(nodeType == Node.DOCUMENT_NODE ||
-                nodeType == Node.ELEMENT_NODE, "root must be a document or element node!");
+        Assert.isTrue(root instanceof Document || root instanceof Element, "root must be a document or element node!");
         this.root = root;
     }
     

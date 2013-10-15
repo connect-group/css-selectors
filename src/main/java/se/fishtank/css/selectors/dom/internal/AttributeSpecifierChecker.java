@@ -4,11 +4,12 @@
 package se.fishtank.css.selectors.dom.internal;
 
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
-import org.w3c.dom.Attr;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
+import org.thymeleaf.dom.Attribute;
+import org.thymeleaf.dom.NestableAttributeHolderNode;
+import org.thymeleaf.dom.Node;
 
 import se.fishtank.css.selectors.NodeSelectorException;
 import se.fishtank.css.selectors.specifier.AttributeSpecifier;
@@ -43,66 +44,69 @@ public class AttributeSpecifierChecker extends NodeTraversalChecker {
         Assert.notNull(nodes, "nodes is null!");
         Set<Node> result = new LinkedHashSet<Node>();
         for (Node node : nodes) {
-            NamedNodeMap map = node.getAttributes();
-            if (map == null) {
-                continue;
-            }
-            
-            Attr attr = (Attr) map.getNamedItem(specifier.getName());
-            if (attr == null) {
-                continue;
-            }
-            
-            // It just have to be present.
-            if (specifier.getValue() == null) {
-                result.add(node);
-                continue;
-            }
-            
-            String value = attr.getNodeValue().trim();
-            if (value.length() != 0) {
-                String val = specifier.getValue();
-                switch (specifier.getMatch()) {
-                case EXACT:
-                    if (value.equals(val)) {
-                        result.add(node);
-                    }
-                    
-                    break;
-                case HYPHEN:
-                    if (value.equals(val) || value.startsWith(val + '-')) {
-                        result.add(node);
-                    }
-                    
-                    break;
-                case PREFIX:
-                    if (value.startsWith(val)) {
-                        result.add(node);
-                    }
-                    
-                    break;
-                case SUFFIX:
-                    if (value.endsWith(val)) {
-                        result.add(node);
-                    }
-                    
-                    break;
-                case CONTAINS:
-                    if (value.contains(val)) {
-                        result.add(node);
-                    }
-                    
-                    break;
-                case LIST:
-                    for (String v : value.split("\\s+")) {
-                        if (v.equals(val)) {
-                            result.add(node);
-                        }
-                    }
-                    
-                    break;
-                }
-            }
+        	if(node instanceof NestableAttributeHolderNode) {
+	        	
+	        	Map<String,Attribute> map = ((NestableAttributeHolderNode) node).getAttributeMap();
+	            if (map == null || map.isEmpty()) {
+	                continue;
+	            }
+	            
+	            Attribute attr = map.get(specifier.getName());
+	            if (attr == null) {
+	                continue;
+	            }
+	            
+	            // It just have to be present.
+	            if (specifier.getValue() == null) {
+	                result.add(node);
+	                continue;
+	            }
+	            
+	            String value = attr.getValue().trim();
+	            if (value.length() != 0) {
+	                String val = specifier.getValue();
+	                switch (specifier.getMatch()) {
+	                case EXACT:
+	                    if (value.equals(val)) {
+	                        result.add(node);
+	                    }
+	                    
+	                    break;
+	                case HYPHEN:
+	                    if (value.equals(val) || value.startsWith(val + '-')) {
+	                        result.add(node);
+	                    }
+	                    
+	                    break;
+	                case PREFIX:
+	                    if (value.startsWith(val)) {
+	                        result.add(node);
+	                    }
+	                    
+	                    break;
+	                case SUFFIX:
+	                    if (value.endsWith(val)) {
+	                        result.add(node);
+	                    }
+	                    
+	                    break;
+	                case CONTAINS:
+	                    if (value.contains(val)) {
+	                        result.add(node);
+	                    }
+	                    
+	                    break;
+	                case LIST:
+	                    for (String v : value.split("\\s+")) {
+	                        if (v.equals(val)) {
+	                            result.add(node);
+	                        }
+	                    }
+	                    
+	                    break;
+	                }
+	            }
+        	}
         }
         
         return result;

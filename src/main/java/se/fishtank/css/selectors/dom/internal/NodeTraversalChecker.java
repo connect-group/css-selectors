@@ -5,7 +5,7 @@ package se.fishtank.css.selectors.dom.internal;
 
 import java.util.Set;
 
-import org.w3c.dom.Node;
+import org.thymeleaf.dom.Node;
 
 import se.fishtank.css.selectors.NodeSelectorException;
 

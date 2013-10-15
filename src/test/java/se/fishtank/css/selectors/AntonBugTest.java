@@ -1,13 +1,18 @@
 package se.fishtank.css.selectors;
 
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.Set;
-
-import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
+import org.thymeleaf.Configuration;
+import org.thymeleaf.dom.Document;
+import org.thymeleaf.dom.Node;
+import org.thymeleaf.messageresolver.StandardMessageResolver;
+import org.thymeleaf.templatemode.StandardTemplateModeHandlers;
+import org.thymeleaf.templateparser.xmlsax.XmlNonValidatingSAXTemplateParser;
+import org.thymeleaf.templateresolver.UrlTemplateResolver;
 
 import se.fishtank.css.selectors.dom.DOMNodeSelector;
 
@@ -16,8 +21,15 @@ public class AntonBugTest {
     private final DOMNodeSelector nodeSelector;
     
     public AntonBugTest() throws Exception {
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        Document document = factory.newDocumentBuilder().parse(getClass().getResourceAsStream("/anton-bug.xml"));
+    	
+    	XmlNonValidatingSAXTemplateParser parser = new XmlNonValidatingSAXTemplateParser(1);
+    	Reader reader = new InputStreamReader(getClass().getResourceAsStream("/anton-bug.xml"));
+    	Configuration configuration = new Configuration();
+    	configuration.setTemplateResolver(new UrlTemplateResolver());
+    	configuration.setMessageResolver(new StandardMessageResolver());
+    	configuration.setDefaultTemplateModeHandlers(StandardTemplateModeHandlers.ALL_TEMPLATE_MODE_HANDLERS);
+    	configuration.initialize();
+    	Document document = parser.parseTemplate(configuration, "anton-bug", reader);
         nodeSelector = new DOMNodeSelector(document);
     }
     

@@ -6,7 +6,7 @@ package se.fishtank.css.selectors.dom.internal;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import org.w3c.dom.Node;
+import org.thymeleaf.dom.Node;
 
 import se.fishtank.css.selectors.NodeSelectorException;
 import se.fishtank.css.selectors.dom.DOMHelper;
@@ -114,7 +114,7 @@ public class PseudoNthSpecifierChecker extends NodeTraversalChecker {
             int count = 1;
             Node n = DOMHelper.getPreviousSiblingElement(node);
             while (n != null) {
-                if (n.getNodeName().equals(node.getNodeName())) {
+                if (DOMHelper.getNodeName(n).equals(DOMHelper.getNodeName(node))) {
                     count++;
                 }
                 
@@ -137,7 +137,7 @@ public class PseudoNthSpecifierChecker extends NodeTraversalChecker {
             int count = 1;
             Node n = DOMHelper.getNextSiblingElement(node);
             while (n != null) {
-                if (n.getNodeName().equals(node.getNodeName())) {
+                if (DOMHelper.getNodeName(n).equals(DOMHelper.getNodeName(node))) {
                     count++;
                 }
                 
