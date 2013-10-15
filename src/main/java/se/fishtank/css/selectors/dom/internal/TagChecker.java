@@ -57,7 +57,7 @@ public class TagChecker extends NodeTraversalChecker {
         this.nodes = nodes;
 
         //Document doc = (root instanceof Document) ? (Document) root : DOMHelper.getOwnerDocument(root);
-        caseSensitive = true; // safe but slower //!doc.createElement("a").isEqualNode(doc.createElement("A"));
+        caseSensitive = false;  //!doc.createElement("a").isEqualNode(doc.createElement("A"));
 
         result = new LinkedHashSet<Node>();
         switch (selector.getCombinator()) {
