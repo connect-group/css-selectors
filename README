@@ -1,4 +1,6 @@
-A Java implementation of the W3C Selectors Level 3 specification.
+A Java Thymeleaf/Thymesheet implementation of the W3C Selectors Level 3 specification, forked from https://github.com/chrsan/css-selectors
+
+Originally coded by Christer Sandberg; original README follows:-
 
 The code for this implementation is influenced by all the JavaScript versions
 out there, and the one used in WebKit. Thanks to all the developers for inspiring me.
